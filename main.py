@@ -1,17 +1,20 @@
 import json
 
-from github_api_service import get_repo_file_contents
+from github_api_service import get_repo_pr_contents
 from open_ai_service import call_chatgpt
 
 
 def lambda_handler(event, context):
     try:
         github_url = event['queryStringParameters']['githubURL']
-        question = event['queryStringParameters']['question']
-
-        file_content = get_repo_file_contents(github_url)
-
-        open_ai_response = call_chatgpt(question, file_content)
+       
+        master_content, pr_content, branch, diff_url = get_repo_pr_contents(github_url)
+        if len(pr_content) == 0:
+            open_ai_response = {}
+        else :
+            open_ai_response = call_chatgpt(master_content, pr_content)
+            open_ai_response.branch = branch
+            open_ai_response.diff_url = diff_url
         
         return {
             'statusCode': 200,
@@ -34,7 +37,10 @@ def lambda_handler(event, context):
         }
     
 # event = {
-#     "githubURL": "https://www.github.com/Team-Brewmasters/code-compass-summary-lambda"
+#     "queryStringParameters":{
+#         "githubURL": "https://www.github.com/Team-Brewmasters/code-compass-summary-lambda"
+#     }
 # }
 
-# lambda_handler(event, None)
+# res = lambda_handler(event, None)
+# print(res)

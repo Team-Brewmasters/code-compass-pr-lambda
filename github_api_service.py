@@ -1,48 +1,54 @@
-import requests
+from github import Github
 
-ignore_list = ['node_modules', 'favicon.ico', '.gitignore', 'package-lock.json', 'angular.json', 'tsconfig.app.json', 'package.json', 'yarn.lock', 'LICENSE', 'Dockerfile', 'docker-compose.yml', 'jest.config.js', 'tsconfig.json', 'tsconfig.build.json', 'tsconfig.spec.json', 'tslint.json', 'README.md', 'CONTRIBUTING.md', 'CODE_OF_CONDUCT.md', 'PULL_REQUEST_TEMPLATE.md', 'ISSUE_TEMPLATE.md', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js', '.prettierignore', '.vscode', '.travis.yml', '.gitlab-ci.yml', '.circleci', '.github', '.gitignore', '.gitattributes', '.editorconfig', '.eslintrc.js', '.prettierrc.js']
 
-def get_repo_file_contents(repo_url, path=''):
-    # Extract the username and repository name from the URL
-    _, _, username, repo_name = repo_url.rstrip('/').split('/')[-4:]
-    
-    # Construct the API URL to get the repository contents
-    api_url = f"https://api.github.com/repos/{username}/{repo_name}/contents/{path}"
-    
-    # Send a GET request to the GitHub API
-    response = requests.get(api_url)
-    
-    # Check if the request was successful
-    if response.status_code == 200:
-        file_contents = []
+def get_repo_pr_contents(repo_url, path=''):
+
+    g = Github()
+    _, _, repo_owner, repo_name = repo_url.rstrip('/').split('/')[-4:]
+
+    # Get the repository
+    repo = g.get_repo(f"{repo_owner}/{repo_name}")
+
+    pull_requests =  repo.get_pulls(state="open", sort="created")
+    if pull_requests.totalCount == 0:
+        return [],[],"",""
+    else :
+        pull_request = pull_requests[0]
+
+    # Get the files that have changed in the pull request
+    files = pull_request.get_files()
+    branch = pull_request.head.ref
+    diff_url = pull_request.diff_url
+    master_contents = []
+    pr_contents = []
+
+    # Iterate over the changed files
+    for file in files:
+        # Get the file path
+        file_path = file.filename
+
+        try: 
+            # Get the file contents from the master branch
+            master_content = repo.get_contents(file_path, ref="main").decoded_content.decode("utf-8")
+            master_contents.append(f"FileName: {file_path} \\n {master_content}")
+        except Exception as e:
+            print ('main brach not found')
+
+        try: 
+            # Get the file contents from the master branch
+            master_content = repo.get_contents(file_path, ref="master").decoded_content.decode("utf-8")
+            master_contents.append(f"FileName: {file_path} \\n {master_content}")
+        except Exception  as e:
+            print ('master brach not found')
         
-        # Iterate over each item in the repository
-        for item in response.json():
-            if item['type'] == 'file':
-                file_name = item['name']
-                if file_name not in ignore_list:
-                    file_url = item['download_url']
-                    
-                    # Send a GET request to download the file contents
-                    file_response = requests.get(file_url)
-                    
-                    if file_response.status_code == 200:
-                        # Get the file contents as text
-                        content = file_response.text
-                        
-                        # Append the file path and contents to the array
-                        file_contents.append(f"{path}/{file_name}\n{content}")
-                    else:
-                        print(f"Error downloading file '{file_name}': {file_response.status_code} - {file_response.text}")
-            elif item['type'] == 'dir':
-                # Recursively get the contents of the directory
-                dir_path = f"{path}/{item['name']}"
-                file_contents.extend(get_repo_file_contents(repo_url, dir_path))
-        
-        return file_contents
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-        return []
+
+        # Get the file contents from the pull request branch
+        pr_content = repo.get_contents(file_path, ref=pull_request.head.ref).decoded_content.decode("utf-8")
+        pr_contents.append(f"FileName: {file_path} \\n {pr_content}")
+
+        return master_contents, pr_contents, branch, diff_url
+
+
 
 # # Example usage
 # repo_link = "https://github.com/Team-Brewmasters/code-compass-webapp"
