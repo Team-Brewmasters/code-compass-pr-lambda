@@ -11,7 +11,7 @@ def lambda_handler(event, context):
         master_content, pr_content, branch, diff_url = get_repo_pr_contents(github_url)
         print("Retrieved master and pr content")
         if len(pr_content) == 0:
-            open_ai_response = {}
+            response = {}
         else :
             open_ai_response = call_chatgpt(master_content, pr_content)
             open_ai_response = json.loads(open_ai_response)
