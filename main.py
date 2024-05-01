@@ -18,8 +18,8 @@ def lambda_handler(event, context):
             print("OpenAI response received")
             print(open_ai_response)
             response = {
-                "decision": open_ai_response.decision,
-                "reasoning": open_ai_response.reasoning,
+                "decision": open_ai_response['decision'],
+                "reasoning": open_ai_response['reasoning'],
                 "branch": branch,
                 "diffURL": diff_url
             }
