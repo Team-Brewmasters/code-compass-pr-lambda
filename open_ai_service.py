@@ -1,5 +1,6 @@
-from openai import OpenAI
 import os
+
+from openai import OpenAI
 
 
 def call_chatgpt(master_content, pr_content):
