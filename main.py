@@ -15,6 +15,8 @@ def lambda_handler(event, context):
         else :
             open_ai_response = call_chatgpt(master_content, pr_content)
             open_ai_response = json.loads(open_ai_response)
+            print("OpenAI response received")
+            print(open_ai_response)
             response = {
                 "decision": open_ai_response.decision,
                 "reasoning": open_ai_response.reasoning,
