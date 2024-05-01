@@ -13,14 +13,14 @@ def lambda_handler(event, context):
         if len(pr_content) == 0:
             response = {}
         else :
-            # open_ai_response = call_chatgpt(master_content, pr_content)
-            # open_ai_response = json.loads(open_ai_response)
+            open_ai_response = call_chatgpt(master_content, pr_content)
+            open_ai_response = json.loads(open_ai_response)
 
-            open_ai_response = {
-                "decision": "Approved",
-                "reasoning": "The pull request is approved"
-            }
-            
+            # open_ai_response = {
+            #     "decision": "Approved",
+            #     "reasoning": "The pull request is approved"
+            # }
+
             print("OpenAI response received")
             print(open_ai_response)
             response = {
