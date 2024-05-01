@@ -9,6 +9,7 @@ def lambda_handler(event, context):
         github_url = event['queryStringParameters']['githubURL']
        
         master_content, pr_content, branch, diff_url = get_repo_pr_contents(github_url)
+        print("Retrieved master and pr content")
         if len(pr_content) == 0:
             open_ai_response = {}
         else :
@@ -26,6 +27,7 @@ def lambda_handler(event, context):
             'body': json.dumps(open_ai_response)
         }
     except Exception as e:
+        print(e)
         return {
             'statusCode': 500,
             'body': str(e),
