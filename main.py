@@ -14,8 +14,13 @@ def lambda_handler(event, context):
             open_ai_response = {}
         else :
             open_ai_response = call_chatgpt(master_content, pr_content)
-            open_ai_response.branch = branch
-            open_ai_response.diff_url = diff_url
+            open_ai_response = json.loads(open_ai_response)
+            response = {
+                "decision": open_ai_response.decision,
+                "reasoning": open_ai_response.reasoning,
+                "branch": branch,
+                "diffURL": diff_url
+            }
         
         return {
             'statusCode': 200,
@@ -24,7 +29,7 @@ def lambda_handler(event, context):
                     'Access-Control-Allow-Methods': '*',
                     'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
                 },
-            'body': json.dumps(open_ai_response)
+            'body': response
         }
     except Exception as e:
         print(e)
